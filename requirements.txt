@@ -1,0 +1,6 @@
+# requirements.txt
+Flask
+Flask-SocketIO
+Flask-Cors
+boto3
+opencv-python
