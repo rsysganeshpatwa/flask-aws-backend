@@ -3,8 +3,8 @@
 import boto3
 import os
 
-AWS_REGION = os.getenv("AWS_REGION", "<your-region>")
-DYNAMO_TABLE = os.getenv("DYNAMO_TABLE", "<your-dynamodb-table>")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+DYNAMO_TABLE = os.getenv("DYNAMO_TABLE", "logo-detection-results")
 
 dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
 
