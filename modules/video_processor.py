@@ -25,14 +25,17 @@ def process_task(task_id, input_bucket, input_key, socketio):
     """
     try:
         # File paths (use temp directory for processing)
+       
         local_file = tempfile.mktemp(suffix=".mp4")
         processed_video_file = tempfile.mktemp(suffix="_processed.mp4")
         report_file = tempfile.mktemp(suffix="_report.csv")
-
+       
         # Step 1: Download video from S3
+        
         logging.info(f"Downloading video from S3: Bucket={input_bucket}, Key={input_key}")
         s3_client.download_file(input_bucket, input_key, local_file)
         logging.info(f"Video downloaded to {local_file}")
+        socketio.emit("progress", {"taskId": task_id, "ganesh3": '33'})
         update_progress(task_id, 0, socketio)
 
         # Step 2: Process video frame by frame
@@ -155,19 +158,22 @@ def process_task(task_id, input_bucket, input_key, socketio):
         logging.error(f"Error processing task {task_id}: {e}", exc_info=True)
         socketio.emit("progress", {"taskId": task_id, "progress": 0, "status": "Error", "message": str(e)})
 
+
 def update_progress(task_id, progress, socketio):
     """
     Updates the progress of the task in DynamoDB and emits a WebSocket event.
     """
     try:
+         # Emit progress update to WebSocket
+       
+        socketio.emit("progress", {"taskId": task_id, "progress": progress})
         # Update progress in DynamoDB
         dynamo_table.update_item(
             Key={"task_id": task_id},
             UpdateExpression="SET progress = :p",
             ExpressionAttributeValues={":p": progress},
         )
-        # Emit progress update to WebSocket
-        socketio.emit("progress", {"taskId": task_id, "progress": progress})
+       
         logging.info(f"Task {task_id} progress updated to {progress}%.")
 
     except Exception as e:

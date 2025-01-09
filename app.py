@@ -22,6 +22,14 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
  # Initialize WebSocket-based task processing
 start_task_processing(socketio)
 
+@app.route('/test-emit')
+def test_emit():
+    #EMIT 100 TIMES
+    for i in range(100):
+        socketio.emit("progress", {"taskId": "test_task", "progress": 50})
+    
+    return "Emit test completed."
+
 @app.route("/get-presigned-url", methods=["POST"])
 def get_presigned_url():
     """
@@ -79,7 +87,7 @@ def start_task():
         logging.info(f"Emitting task event for task {task_id} to WebSocket...")
 
         socketio.emit("task", {"task_id": task_id, "bucket": bucket, "key": key})
-        socketio.sleep(1)  # Simulate processing delay
+    
         logging.info(f"Task {task_id} sent to WebSocket for processing.")
 
         return jsonify({"taskId": task_id})
@@ -90,10 +98,5 @@ def start_task():
 
 
 if __name__ == "__main__":
-
-    @socketio.on("task")
-    def on_task(data):
-        logging.info(f"Task1 received via WebSocket: {data}")
-
     logging.info("Starting Flask app...")
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)

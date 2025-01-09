@@ -11,15 +11,18 @@ def start_task_processing(socketio):
     Starts WebSocket-based task processing.
     """
     logging.info("Initializing WebSocket task processing...")
-    def handle_task(data):
+    def handle_task(data,socketio):
         """
         Handles a task received via WebSocket.
         """
         try:
             # Parse task details
-            task_id = data.get("task_id")
+            task_id = data.get("taskId")
             bucket = data.get("bucket")
             key = data.get("key")
+
+            logging.info(f"Processing task: {task_id} {bucket} {key}")
+        
 
             if not (task_id and bucket and key):
                 logging.warning(f"Incomplete task data received: {data}")
@@ -39,12 +42,21 @@ def start_task_processing(socketio):
         @socketio.on("task")
         def on_task(data):
            logging.info(f"Task received via WebSocket: {data}")
-           Thread(target=handle_task, args=(data,), daemon=True).start()
+           socketio.emit("progress", {"taskId": "test_task", "progress": 50})
+           #handle_task(data,socketio)
+           Thread(target=handle_task, args=(data,socketio,), daemon=True).start()
+           
 
             
         @socketio.on("connect")
         def handle_connect():
            logging.info("WebSocket client connected")
+        
+        @socketio.on("progress")
+        def progress(data):
+           logging.info(f"Progress: {data}")
+        
+       
 
     setup_websocket_listener()
     logging.info("WebSocket task processing initialized.")
