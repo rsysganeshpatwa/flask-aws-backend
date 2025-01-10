@@ -42,9 +42,10 @@ def start_task_processing(socketio):
         @socketio.on("task")
         def on_task(data):
            logging.info(f"Task received via WebSocket: {data}")
-           socketio.emit("progress", {"taskId": "test_task", "progress": 50})
            #handle_task(data,socketio)
-           Thread(target=handle_task, args=(data,socketio,), daemon=True).start()
+           #Thread(target=handle_task, args=(data,socketio,), daemon=True).start()
+           socketio.start_background_task(target=handle_task, data=data, socketio=socketio)
+
            
 
             
