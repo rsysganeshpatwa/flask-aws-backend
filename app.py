@@ -1,16 +1,20 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_socketio import SocketIO,emit
 from flask_cors import CORS
 from modules.aws_config import s3_client, dynamo_table
-from modules.websocket_processor import start_task_processing  # Updated module
+from modules.websocket_processor import start_task_processing
+from modules.get_module import get_module_blueprint
 import uuid
 import logging
-
+import os
 
 # Flask app initialization
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Register the blueprint for the module API
+app.register_blueprint(get_module_blueprint)
 
 # Constants
 S3_BUCKET = "logo-detection-bucket"  # Replace with your actual bucket name
@@ -40,8 +44,8 @@ def get_presigned_url():
         file_name = data.get("fileName")
         if not file_name:
             return jsonify({"error": "Missing 'fileName' in request"}), 400
-
-        key = f"uploads/{uuid.uuid4()}_{file_name}"
+        clientFolder=uuid.uuid4()
+        key = f"{clientFolder}/input/{uuid.uuid4()}_{file_name}"
         url = s3_client.generate_presigned_url(
             "put_object",
             Params={"Bucket": S3_BUCKET, "Key": key},
@@ -67,8 +71,8 @@ def start_task():
         key = data.get("key")
         if not bucket or not key:
             return jsonify({"error": "Missing 'bucket' or 'key' in request"}), 400
-
-        task_id = str(uuid.uuid4())
+        clientFolder=key.split('/')[0]
+        task_id = str(clientFolder)
 
         # Add metadata to DynamoDB
         dynamo_table.put_item(
