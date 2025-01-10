@@ -7,7 +7,7 @@ import os
 get_module_blueprint = Blueprint('get_module', __name__)
 
 # Define the directory where your .pt files are located
-MODULE_DIR = "C:/Users/Vikas/POC LogoDetection/LogoDetection_mine/Trained_model/"  # Change this to your actual directory
+MODULE_DIR = "modules/trained_module/"  # Change this to your actual directory
 
 @get_module_blueprint.route("/get-modules", methods=["GET"])
 def get_modules():
