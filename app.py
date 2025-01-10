@@ -26,14 +26,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
  # Initialize WebSocket-based task processing
 start_task_processing(socketio)
 
-@app.route('/test-emit')
-def test_emit():
-    #EMIT 100 TIMES
-    for i in range(100):
-        socketio.emit("progress", {"taskId": "test_task", "progress": 50})
-    
-    return "Emit test completed."
-
 @app.route("/get-presigned-url", methods=["POST"])
 def get_presigned_url():
     """
@@ -44,8 +36,9 @@ def get_presigned_url():
         file_name = data.get("fileName")
         if not file_name:
             return jsonify({"error": "Missing 'fileName' in request"}), 400
-        clientFolder=uuid.uuid4()
-        key = f"{clientFolder}/input/{uuid.uuid4()}_{file_name}"
+        
+        task_id = uuid.uuid4()
+        key = f"{task_id}/input/{uuid.uuid4()}_{file_name}"
         url = s3_client.generate_presigned_url(
             "put_object",
             Params={"Bucket": S3_BUCKET, "Key": key},
@@ -71,19 +64,19 @@ def start_task():
         key = data.get("key")
         if not bucket or not key:
             return jsonify({"error": "Missing 'bucket' or 'key' in request"}), 400
-        clientFolder=key.split('/')[0]
-        task_id = str(clientFolder)
+        
+        task_id = str(key).split("/")[0]  # Use the key prefix as the task ID
 
-        # Add metadata to DynamoDB
-        dynamo_table.put_item(
-            Item={
-                "task_id": task_id,
-                "status": "Pending",
-                "progress": 0,
-                "bucket": bucket,
-                "key": key,
-            }
-        )
+        # # Add metadata to DynamoDB
+        # dynamo_table.put_item(
+        #     Item={
+        #         "task_id": task_id,
+        #         "status": "Pending",
+        #         "progress": 0,
+        #         "bucket": bucket,
+        #         "key": key,
+        #     }
+        # )
         logging.info(f"Task metadata added to DynamoDB: TaskID={task_id}")
 
         # Notify frontend via WebSocket
