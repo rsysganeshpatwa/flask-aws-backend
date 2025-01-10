@@ -11,8 +11,7 @@ from mimetypes import guess_type  # Import guess_type from mimetypes
 from .ffmpeg_postprocess import convert_video_to_browser_friendly
 
 
-# Load the trained YOLO model
-model = YOLO("modules/trained_module/best.pt")
+
 
 # Constants
 YOLO_CONFIDENCE_THRESHOLD = 0.5
@@ -23,8 +22,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 
 
-def process_task(task_id, input_bucket, input_key, socketio):
+def process_task(task_id, input_bucket, input_key, socketio, module_name, class_names):
     try:
+        # Load the trained YOLO model
+        model = YOLO(f"modules/trained_module/{module_name}")
         # File paths (use temp directory for processing)
         local_file = tempfile.mktemp(suffix=".mp4")
         processed_video_file = tempfile.mktemp(suffix="_processed.mp4")
@@ -66,10 +67,16 @@ def process_task(task_id, input_bucket, input_key, socketio):
                 track_ids = results[0].boxes.id.int().cpu().tolist()
                 class_indices = results[0].boxes.cls.int().cpu().tolist()
                 conflist = results[0].boxes.conf.cpu().tolist()
+                print('classname',class_names)
 
                 for box, track_id, classidx, conf in zip(boxes, track_ids, class_indices, conflist):
                     x1, y1, x2, y2 = map(int, box)
                     classname = model.names[classidx]
+
+                    # Filter by class names
+                    print('classname',class_names)
+                    if classname not in class_names:
+                        continue
 
                     # Draw rectangle and track ID
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
@@ -99,7 +106,7 @@ def process_task(task_id, input_bucket, input_key, socketio):
                         )
                         occurrences[track_id]["confidences"].append(conf)
                         occurrences[track_id]["classname"] = classname
-
+                        
                     occurrences[track_id]["clip_out"].write(frame)
 
             cv2.putText(frame, f"Total Count: {total_count}", (10, 30),

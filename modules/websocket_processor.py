@@ -20,6 +20,8 @@ def start_task_processing(socketio):
             task_id = data.get("taskId")
             bucket = data.get("bucket")
             key = data.get("key")
+            module_name = data.get("moduleName")
+            class_names = data.get("classNames")
 
             logging.info(f"Processing task: {task_id} {bucket} {key}")
         
@@ -29,7 +31,7 @@ def start_task_processing(socketio):
                 return
 
             logging.info(f"Processing task: {data}")
-            process_task(task_id, bucket, key, socketio)
+            process_task(task_id, bucket, key, socketio, module_name, class_names)
             logging.info(f"Task {task_id} completed.")
 
         except Exception as e:
