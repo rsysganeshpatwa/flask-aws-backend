@@ -1,6 +1,7 @@
 # requirements.txt
+ultralytics
 Flask
 Flask-SocketIO
 Flask-Cors
 boto3
-opencv-python
+ffmpeg
