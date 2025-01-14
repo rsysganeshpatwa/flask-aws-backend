@@ -96,4 +96,4 @@ def start_task():
 
 if __name__ == "__main__":
     logging.info("Starting Flask app...")
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)
